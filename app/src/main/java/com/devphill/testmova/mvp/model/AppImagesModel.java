@@ -74,6 +74,7 @@ public class AppImagesModel implements AppImagesContract.Model {
     public void deleteItemFromRealm(long ms) {
         mRealm.beginTransaction();
 
+        //достаем данные из БД, сортируя их по времени в милисикундах
         RealmResults<HistoryItem> rows= mRealm.where(HistoryItem.class).equalTo("curent_ms", ms).findAll();
 
         rows.clear();
