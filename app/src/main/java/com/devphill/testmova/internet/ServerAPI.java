@@ -2,7 +2,7 @@ package com.devphill.testmova.internet;
 
 
 
-import com.devphill.testmova.model_data.ImagesModel;
+import com.devphill.testmova.model_data.image_model.ImagesModel;
 
 import io.reactivex.Observable;
 import retrofit2.http.GET;

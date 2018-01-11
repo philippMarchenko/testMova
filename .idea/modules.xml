@@ -3,7 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://D:\android\testMova\app\app.iml" filepath="D:\android\testMova\app\app.iml" />
       <module fileurl="file://$PROJECT_DIR$/testMova.iml" filepath="$PROJECT_DIR$/testMova.iml" />
+      <module fileurl="file://D:\android\testMova\testMova.iml" filepath="D:\android\testMova\testMova.iml" />
     </modules>
   </component>
 </project>

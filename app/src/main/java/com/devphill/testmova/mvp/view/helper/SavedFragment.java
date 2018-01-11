@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
 
-import com.devphill.testmova.model_data.Image;
+import com.devphill.testmova.model_data.image_model.Image;
 
 import java.util.ArrayList;
 import java.util.List;

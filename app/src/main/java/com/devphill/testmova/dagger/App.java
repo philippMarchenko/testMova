@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 
-import com.devphill.testmova.dagger.module.view.ListImagesActivityModule;
-
 public class App extends Application {
 
     private static AppComponent component;
@@ -25,7 +23,6 @@ public class App extends Application {
 
         component = DaggerAppComponent.builder()
                 .contextModule(new ContextModule(context))
-                .listImagesActivityModule(new ListImagesActivityModule(activity))
                 .build();
     }
 }

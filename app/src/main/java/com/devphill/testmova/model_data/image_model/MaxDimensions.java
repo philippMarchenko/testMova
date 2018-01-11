@@ -1,4 +1,4 @@
-package com.devphill.testmova.model_data;
+package com.devphill.testmova.model_data.image_model;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

@@ -1,6 +1,5 @@
 package com.devphill.testmova.mvp.view;
 
-import android.app.Activity;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -12,38 +11,46 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.devphill.testmova.R;
 import com.devphill.testmova.model_data.HistoryItem;
-import com.devphill.testmova.model_data.Image;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 
 public class ImagesAdapter extends RecyclerView.Adapter<ImagesAdapter.MyViewHolder>  {
 
-    private static final String LOG_TAG = "DecrlarationsAdapterTag";
+    private static final String LOG_TAG = "ImagesAdapterTag";
 
     private static Context mContext;
-    private Activity myActivity;
     private List<HistoryItem> historyItems;
 
+    public interface ImagesListener{
+
+        void onItemClick(int position);
+    }
+
+    ImagesListener imagesListener;
 
     public class MyViewHolder extends RecyclerView.ViewHolder{
 
-        private TextView phrase;
-        private ImageView imageView;
+        private TextView phrase,detail,date;
+        private ImageView imageView,delete;
 
         public MyViewHolder(View v) {
             super(v);
-            this.phrase = (TextView) v.findViewById(R.id.phrase);
-            this.imageView = (ImageView) v.findViewById(R.id.image);
+            this.phrase =  v.findViewById(R.id.phrase);
+            this.detail = v.findViewById(R.id.detail);
+            this.date =  v.findViewById(R.id.date);
+            this.imageView =  v.findViewById(R.id.image);
+            this.delete =  v.findViewById(R.id.delete);
 
         }
     }
 
-    public ImagesAdapter(Context context, Activity activity, List<HistoryItem> list) {
+    public ImagesAdapter(Context context, List<HistoryItem> list,ImagesListener imagesListener) {
 
         mContext = context;
-        myActivity = activity;
         historyItems = list;
+        this.imagesListener = imagesListener;
     }
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
@@ -58,14 +65,21 @@ public class ImagesAdapter extends RecyclerView.Adapter<ImagesAdapter.MyViewHold
 
         final HistoryItem historyItem = historyItems.get(position);
 
-       // viewHolder.imageView.setImageBitmap(historyItem.getBitmap());
-
         Glide.with(mContext)
              .load(historyItem.getImage_url())
              .centerCrop()
-             .into(viewHolder.imageView);
+             .into(viewHolder.imageView);                                       //загружаем картинку
 
-        viewHolder.phrase.setText(historyItem.getPhrase());
+        viewHolder.phrase.setText("Запрос: " + historyItem.getPhrase());        //выводим фразу запрса
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm");
+        String strTime = simpleDateFormat.format(historyItem.getCurent_ms());   //когда был запрос
+
+        viewHolder.date.setText(strTime);
+        viewHolder.detail.setText("Детали: " + historyItem.getCaption());       //детали запроса
+
+        //слушатель клика по корзинке
+        viewHolder.delete.setOnClickListener(view -> imagesListener.onItemClick(position));
 
     }
 

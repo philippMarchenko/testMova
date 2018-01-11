@@ -1,17 +1,16 @@
 package com.devphill.testmova.mvp.presenter;
 
 import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.util.Log;
 
 import com.devphill.testmova.R;
 import com.devphill.testmova.dagger.App;
 import com.devphill.testmova.model_data.HistoryItem;
-import com.devphill.testmova.model_data.Image;
-import com.devphill.testmova.model_data.ImagesModel;
+import com.devphill.testmova.model_data.image_model.Image;
+import com.devphill.testmova.model_data.image_model.ImagesModel;
 import com.devphill.testmova.mvp.AppImagesContract;
 import com.devphill.testmova.base.PresenterBase;
+import com.devphill.testmova.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +24,6 @@ public class AppImagesPresenter extends PresenterBase<AppImagesContract.View> im
     private String LOG_TAG = "AppImagesPresenter";
 
     private AppImagesContract.Model model;
-    private List<Image> imagesList = new ArrayList<>();
     private Context mContext;
 
     public AppImagesPresenter() {
@@ -44,7 +42,7 @@ public class AppImagesPresenter extends PresenterBase<AppImagesContract.View> im
     public void getImages(String phrase) {
         Log.d(LOG_TAG,"onSearchConfirmed ");
 
-        String netType = getNetworkType(mContext);
+        String netType = Util.getNetworkType(mContext);
         if(netType == null){
             getView().hideDownloadMode();
             getView().showMessage(R.string.no_internet);
@@ -61,9 +59,10 @@ public class AppImagesPresenter extends PresenterBase<AppImagesContract.View> im
                                 Log.d(LOG_TAG,"Найдено " + imagesModel.getResultCount() + " картинок по запросу " + phrase);
                                 getView().showListImages(imagesModel,phrase);
 
-
                                 HistoryItem historyItem = new HistoryItem(phrase,
-                                        imagesModel.getImages().get(0).getDisplaySizes().get(0).getUri());
+                                        imagesModel.getImages().get(0).getDisplaySizes().get(0).getUri(),
+                                        imagesModel.getImages().get(0).getCaption(),
+                                        System.currentTimeMillis());
 
                                 model.saveDataIndDB(historyItem);
                             }
@@ -76,6 +75,8 @@ public class AppImagesPresenter extends PresenterBase<AppImagesContract.View> im
                         @Override
                         public void onError(Throwable e) {
                             Log.d(LOG_TAG,"onError getDeclarations " + e.getMessage());
+                            getView().hideDownloadMode();
+
 
                         }
 
@@ -88,19 +89,14 @@ public class AppImagesPresenter extends PresenterBase<AppImagesContract.View> im
     }
 
     @Override
-    public List<HistoryItem> getData() {
-
-        return model.getDataFromDB();
+    public void deleteItemFromRealm(long ms) {
+        model.deleteItemFromRealm(ms);
     }
 
-    private String getNetworkType(Context context) {
-        ConnectivityManager cm =
-                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        if (activeNetwork != null) {
-            return activeNetwork.getTypeName();
-        }
-        return null;
+    @Override
+    public List<HistoryItem> getDataFromDB() {
+
+        return model.getDataFromDB();
     }
 
 }

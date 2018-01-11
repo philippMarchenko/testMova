@@ -5,7 +5,7 @@ import android.content.Context;
 import com.devphill.testmova.dagger.App;
 import com.devphill.testmova.internet.ServerAPI;
 import com.devphill.testmova.model_data.HistoryItem;
-import com.devphill.testmova.model_data.ImagesModel;
+import com.devphill.testmova.model_data.image_model.ImagesModel;
 import com.devphill.testmova.mvp.AppImagesContract;
 
 
@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import io.reactivex.Observable;
 import io.realm.Realm;
 import io.realm.RealmResults;
+import io.realm.Sort;
 
 public class AppImagesModel implements AppImagesContract.Model {
 
@@ -60,14 +61,23 @@ public class AppImagesModel implements AppImagesContract.Model {
         mRealm = Realm.getInstance(mContext);
 
         try {
-            realmResults  = mRealm.where(HistoryItem.class).findAllAsync();
+            realmResults = mRealm.where(HistoryItem.class).findAllSorted("curent_ms", Sort.DESCENDING);
             realmResults.load();
         }
         catch (Exception e){
-
         }
 
         return realmResults;
+    }
+
+    @Override
+    public void deleteItemFromRealm(long ms) {
+        mRealm.beginTransaction();
+
+        RealmResults<HistoryItem> rows= mRealm.where(HistoryItem.class).equalTo("curent_ms", ms).findAll();
+
+        rows.clear();
+        mRealm.commitTransaction();
     }
 
 

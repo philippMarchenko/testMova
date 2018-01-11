@@ -1,8 +1,5 @@
 package com.devphill.testmova.mvp.view;
 
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
@@ -18,14 +15,11 @@ import android.widget.Toast;
 import com.devphill.testmova.R;
 import com.devphill.testmova.dagger.App;
 import com.devphill.testmova.model_data.HistoryItem;
-import com.devphill.testmova.model_data.Image;
-import com.devphill.testmova.model_data.ImagesModel;
+import com.devphill.testmova.model_data.image_model.ImagesModel;
 import com.devphill.testmova.mvp.AppImagesContract;
 import com.devphill.testmova.mvp.presenter.AppImagesPresenter;
 import com.mancj.materialsearchbar.MaterialSearchBar;
-import com.mancj.materialsearchbar.adapter.SuggestionsAdapter;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,11 +43,12 @@ public class ListImagesActivity extends AppCompatActivity implements AppImagesCo
     @Inject
     AppImagesPresenter appImagesPresenter;
 
-    private ImagesAdapter imagesAdapter;
-    private List<HistoryItem> historyItems = new ArrayList<>();
-    private ArrayList<String> suggestionList = new ArrayList<String>();
+    private ImagesAdapter imagesAdapter;                            //адаптер списка
+    private List<HistoryItem> historyItems = new ArrayList<>();     //локальный список элементов истории
 
     private String LOG_TAG = "ListDeclarationsActivity";
+
+    private ImagesAdapter.ImagesListener imagesListener;            //слушатель событий из адаптера
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,23 +57,23 @@ public class ListImagesActivity extends AppCompatActivity implements AppImagesCo
 
         Log.d(LOG_TAG,"onCreate ");
 
-
         ButterKnife.bind(this);
 
         App.createComponent(this,getApplicationContext());
 
         appImagesPresenter = App.getComponent().getAppImagesPresenter();            //подгружаем презентер
-       // imageList = App.getComponent().getImagesListProvider().getImageList();      //загружаем данные из фрагмента для сохранения
 
         progressBar.setVisibility(View.INVISIBLE);
 
-        materialSearchBar.setOnSearchActionListener(this);
-     //   recyclerView = (RecyclerView) findViewById(R.id.recycler_view_declarations);
+        materialSearchBar.setOnSearchActionListener(this);                          //этот клас реализует интерфейс поиска
+
+        initImageListener();                                                        //инициализация слушателя клика по корзинке
+
         RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(getBaseContext(), 1);
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
-        imagesAdapter = new ImagesAdapter(getBaseContext(),this,historyItems);
+        imagesAdapter = new ImagesAdapter(getBaseContext(),historyItems,imagesListener);
         recyclerView.setAdapter(imagesAdapter);
 
         // attach view to presenter
@@ -87,27 +82,37 @@ public class ListImagesActivity extends AppCompatActivity implements AppImagesCo
         // view is ready to work
         appImagesPresenter.viewIsReady();
 
-
-        historyItems.addAll(appImagesPresenter.getData());
+        //достаем всю историю с БД и добавляем на экран
+        historyItems.addAll(appImagesPresenter.getDataFromDB());
         imagesAdapter.notifyDataSetChanged();
 
     }
 
+    private void initImageListener(){
+
+        imagesListener = position -> {
+            appImagesPresenter.deleteItemFromRealm(historyItems.get(position).getCurent_ms());  //удаляем из БД элемент
+            historyItems.remove(position);                                                      //удаляем из списка на экране элемент
+            imagesAdapter.notifyDataSetChanged();
+        };
+    }//инициализация слушателя клика по корзинке
 
     @Override
     public void showListImages(ImagesModel imagesModel,String phrase) {
         progressBar.setVisibility(View.INVISIBLE);
         recyclerView.setVisibility(View.VISIBLE);
 
+        //создаем новый элемент истории
         HistoryItem historyItem = new HistoryItem(phrase,
-                                                  imagesModel.getImages().get(0).getDisplaySizes().get(0).getUri());
+                                                  imagesModel.getImages().get(0).getDisplaySizes().get(0).getUri(),
+                                                  imagesModel.getImages().get(0).getCaption(),
+                                                  System.currentTimeMillis());
 
-        historyItems.add(0,historyItem);
+        historyItems.add(0,historyItem);            //обновим список на экране, добавив в начало элемент
         imagesAdapter.notifyItemInserted(0);
         recyclerView.smoothScrollToPosition(0);
         materialSearchBar.disableSearch();
 
-        App.getComponent().getImagesListProvider().setImagesList(imagesModel.getImages());
     }
 
     @Override
@@ -142,24 +147,5 @@ public class ListImagesActivity extends AppCompatActivity implements AppImagesCo
 
     }
 
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-
-  /*      SharedPreferences prefs = getSharedPreferences("suggestionList", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        try {
-            editor.putString("LIST", ObjectSerializer.serialize(suggestionList));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        editor.commit();
-
-        Log.i(LOG_TAG, "MainFragment onDestroy");*/
-
-
-
-    }
 }
 
